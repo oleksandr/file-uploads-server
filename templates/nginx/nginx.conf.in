@@ -38,29 +38,26 @@ http {
         }
 
         location /upload {
-            upload_pass backend;
+            upload_pass @backend;
+
+            upload_pass_args on;
             upload_store ${project:uploads-store-path} 1;
             upload_store_access user:r;
+            upload_cleanup 400 404 499 500-505;
 
             # Set specified fields in request body
-            set $name1 $upload_field_name"_name";
-            set $content_type1 $upload_field_name"_content_type";
-            set $path1 $upload_field_name"_path";
-
-            upload_set_form_field $name1 $upload_file_name;
-            upload_set_form_field $content_type1 $upload_content_type;
-            upload_set_form_field $path1 $upload_tmp_path;
+            upload_set_form_field $upload_field_name.name "$upload_file_name";
+            upload_set_form_field $upload_field_name.content_type "$upload_content_type";
+            upload_set_form_field $upload_field_name.path "$upload_tmp_path";
 
             # Inform backend about hash and size of a file
-            set $md51 $upload_field_name"_md5";
-            set $size1 $upload_field_name"_size";
-            upload_aggregate_form_field $md51 $upload_file_md5;
-            upload_aggregate_form_field $size1 $upload_file_size;
+            upload_aggregate_form_field $upload_field_name.md5 "$upload_file_md5";
+            upload_aggregate_form_field $upload_field_name.size "$upload_file_size";
 
-            upload_pass_form_field "^submit$|^description$";
+            #upload_pass_form_field "^submit$|^description$";
         }
 
-        location backend {
+        location @backend {
             proxy_pass   http://${project:uploads-backend-addr};
         }
 
