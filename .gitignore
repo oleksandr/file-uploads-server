@@ -1,3 +1,4 @@
+# Buildout generated
 bin/
 etc/
 develop-eggs/
@@ -5,3 +6,7 @@ eggs/
 parts/
 var/
 .installed.cfg
+
+# Python / Logs
+*.pyc
+*.log
