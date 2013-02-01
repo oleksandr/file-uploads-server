@@ -1,7 +1,7 @@
 file-uploads-server
 ===================
 
-A buildout/nginx based project layout that creates a web server to handle uploaded files (using nginx uploads module) and pass the request further to a pre-configured backend.
+A buildout/nginx based project layout that creates a web server to handle uploaded files (using nginx uploads module) and to pass the request further to a pre-configured backend.
 This template can be used as a good starting point for the web-application that handles file uploads to avoid passing the uploads through the proxy (load-balancer).
 
 The template relies on:
@@ -11,7 +11,7 @@ The template relies on:
 * gunicorn
 * Flask
 
-The main configuration reside in buildout.cfg file. The template includes an example backend in src/ folder.
+The main configuration resides in buildout.cfg file. The template includes an example backend in src/ folder.
 
 Installation
 -------------
