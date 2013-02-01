@@ -1,5 +1,5 @@
 daemon off;
-worker_processes  1;
+worker_processes  5;
 
 events {
     worker_connections  1024;
@@ -20,21 +20,54 @@ http {
     gzip  on;
 
     gzip_comp_level 2;
-          gzip_proxied    any;
-          gzip_types      text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_proxied    any;
+    gzip_types      text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
     server {
-        listen       ${port};
-        server_name  ${server_name};
+        listen       ${project:port-http};
+        listen       ${project:port-https} ssl;
+        server_name  ${project:host};
+        client_max_body_size ${project:max-upload-size};
+
+        ssl_certificate ${buildout:directory}/etc/nginx/server.crt;
+        ssl_certificate_key ${buildout:directory}/etc/nginx/server.key;
 
         location / {
             root   html;
             index  index.html index.htm;
         }
 
+        location /upload {
+            upload_pass backend;
+            upload_store ${project:uploads-store-path} 1;
+            upload_store_access user:r;
+
+            # Set specified fields in request body
+            set $name1 $upload_field_name"_name";
+            set $content_type1 $upload_field_name"_content_type";
+            set $path1 $upload_field_name"_path";
+
+            upload_set_form_field $name1 $upload_file_name;
+            upload_set_form_field $content_type1 $upload_content_type;
+            upload_set_form_field $path1 $upload_tmp_path;
+
+            # Inform backend about hash and size of a file
+            set $md51 $upload_field_name"_md5";
+            set $size1 $upload_field_name"_size";
+            upload_aggregate_form_field $md51 $upload_file_md5;
+            upload_aggregate_form_field $size1 $upload_file_size;
+
+            upload_pass_form_field "^submit$|^description$";
+        }
+
+        location backend {
+            proxy_pass   http://${project:uploads-backend-addr};
+        }
+
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
             root   html;
         }
+
     }
 }
